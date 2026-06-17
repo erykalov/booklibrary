@@ -24,7 +24,7 @@ fun BookDetails(
     onNavigate: () -> Unit
 ){
     var sliderValue by remember { mutableFloatStateOf(book.rating) }
-    Column() {
+    Column {
         TopBar(title)
         Box(
             modifier = Modifier.padding(top = 8.dp, start = 8.dp)
