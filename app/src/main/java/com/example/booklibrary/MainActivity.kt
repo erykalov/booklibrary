@@ -79,14 +79,12 @@ fun BooklibraryApp() {
                     book = viewModel.editingBook,
                     onAddBook = {
                         viewModel.addBook(it)
-                        navController.popBackStack()
                     },
                     onNavigate = {
                         navController.popBackStack()
                                  },
                     onEditBook = {
                         viewModel.updateBook(it)
-                        navController.popBackStack()
                     }
                 )
             }
