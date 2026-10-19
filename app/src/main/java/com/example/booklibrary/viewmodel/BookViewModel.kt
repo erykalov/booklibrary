@@ -17,10 +17,6 @@ class BookViewModel : ViewModel() {
         editingBook = book
     }
 
-    fun cancelEditing() {
-        editingBook = null
-    }
-
     fun addBook(book: Book) {
         books.add(book)
     }

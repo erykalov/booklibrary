@@ -1,29 +1,34 @@
 package com.example.booklibrary.ui.screens
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.example.booklibrary.models.Book
-import com.example.booklibrary.ui.components.TopBar
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.dp
+import com.example.booklibrary.models.Book
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddBook(
     title: String,
@@ -31,17 +36,13 @@ fun AddBook(
     onNavigate: () -> Unit,
     onAddBook: (Book) -> Unit,
     onEditBook: (Book) -> Unit
-){
+) {
+    // Флаг защиты от повторных нажатий
+    var isNavigating by remember { mutableStateOf(false) }
 
-    var bookTitle by rememberSaveable {
-        mutableStateOf(book?.title ?: "")
-    }
-    var bookAuthor by rememberSaveable {
-        mutableStateOf(book?.author ?: "")
-    }
-    var bookYear by rememberSaveable {
-        mutableStateOf(book?.year?: "")
-    }
+    var bookTitle by rememberSaveable { mutableStateOf(book?.title ?: "") }
+    var bookAuthor by rememberSaveable { mutableStateOf(book?.author ?: "") }
+    var bookYear by rememberSaveable { mutableStateOf(book?.year ?: "") }
 
     LaunchedEffect(book) {
         bookTitle = book?.title ?: ""
@@ -49,34 +50,51 @@ fun AddBook(
         bookYear = book?.year ?: ""
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxWidth(),
-    ) {
-
-        TopBar(title)
-        Box(
-            modifier = Modifier.padding(top = 8.dp, start = 8.dp)
-        ) {
-            Button(onClick = { onNavigate() } ) {
-                Text("<--=",
-                    color = Color.White,
-                    fontSize = 24.sp)
-            }
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(text = title) },
+                navigationIcon = {
+                    IconButton(
+                        onClick = {
+                            if (!isNavigating) {
+                                isNavigating = true
+                                onNavigate()
+                            }
+                        },
+                        enabled = !isNavigating
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Назад"
+                        )
+                    }
+                }
+            )
         }
-        Column(modifier = Modifier.padding(16.dp)) {
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .padding(paddingValues)
+                .padding(16.dp)
+                .fillMaxWidth()
+        ) {
             TextField(
                 value = bookTitle,
                 onValueChange = { bookTitle = it },
                 label = { Text("Title") },
                 modifier = Modifier.fillMaxWidth()
             )
+            Spacer(modifier = Modifier.height(8.dp))
+
             TextField(
                 value = bookAuthor,
                 onValueChange = { bookAuthor = it },
                 label = { Text("Author") },
                 modifier = Modifier.fillMaxWidth()
             )
+            Spacer(modifier = Modifier.height(8.dp))
+
             TextField(
                 value = bookYear,
                 onValueChange = { input ->
@@ -90,17 +108,22 @@ fun AddBook(
                     keyboardType = KeyboardType.Number
                 )
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             Button(
                 onClick = {
-                    if (book == null){
+                    if (isNavigating) return@Button
+
+                    if (book == null) {
                         if (bookTitle.isNotBlank() || bookAuthor.isNotBlank() || bookYear.isNotBlank()) {
                             val newBook = Book(
                                 title = bookTitle,
                                 author = bookAuthor,
-                                year = bookYear)
+                                year = bookYear
+                            )
+                            isNavigating = true
                             onAddBook(newBook)
+                            onNavigate()
                         }
                     } else {
                         val updatedBook = book.copy(
@@ -108,19 +131,16 @@ fun AddBook(
                             author = bookAuthor,
                             year = bookYear
                         )
+                        isNavigating = true
                         onEditBook(updatedBook)
                         onNavigate()
                     }
                 },
+                enabled = !isNavigating,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                if (book != null){
-                    Text("Update")
-                } else{
-                    Text("Save")
-                }
+                Text(if (book != null) "Update" else "Save")
             }
         }
     }
-
 }
